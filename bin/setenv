@@ -1,0 +1,4 @@
+eval $(sed 's/\(.*\)=\(.*\)/export \1="\2"/' < ./.env)
+export PYTHONPATH=.
+export VERSION=devel
+export EMAIL_ENABLED=false

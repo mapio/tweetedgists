@@ -1,0 +1,6 @@
+#!/bin/bash
+
+hg bookmarks -fr default master
+#hg push 
+hg push git+ssh://localhost:$(pwd)/.git/
+git push heroku master

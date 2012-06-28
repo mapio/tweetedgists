@@ -1,0 +1,3 @@
+#!/bin/bash
+
+heroku config --app tweetedgists -s | grep '^MEMCACHE_' > .env
