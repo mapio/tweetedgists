@@ -17,7 +17,7 @@
 # TweetedGists If not, see <http://www.gnu.org/licenses/>. 
 
 hg bookmarks -fr default master
-#hg push 
+hg push ssh://mercurio.srv.dsi.unimi.it/scm/hg/priv/programming/heroku/tweetedgists
 hg push git+ssh://localhost:$(pwd)/.git/
 git push github master
 if [ -n "$1" ]; then

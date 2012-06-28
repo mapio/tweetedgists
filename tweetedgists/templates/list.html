@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block extrahead %}
+	<script src="http://platform.twitter.com/widgets.js" charset="utf-8"></script>
+{% endblock %}
+
 {% block content %}
 
 {{ content | safe }}
