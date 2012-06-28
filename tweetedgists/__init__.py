@@ -1,3 +1,19 @@
+# Copyright (C) 2012 Massimo Santini <massimo.santini@unimi.it>
+# 
+# This file is part of TweetedGists
+# 
+# TweetedGists is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+# 
+# TweetedGists is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along with
+# TweetedGists If not, see <http://www.gnu.org/licenses/>. 
+
 from os import environ as ENV
 
 from flask import Flask, g, render_template, request, redirect, url_for, session, flash
@@ -77,7 +93,7 @@ def oauth_authorized( resp ):
 	cache.set( session[ 'user_id' ] + '_username', resp[ 'screen_name' ] )
 	cache.set( session[ 'user_id' ] + '_oauth_token', resp[ 'oauth_token' ] )
 	cache.set( session[ 'user_id' ] + '_oauth_secret', 	resp[ 'oauth_token_secret' ] )
-	flash( u'You were signed in.' )
+	flash( u'You were signed in as <b>{0}</b>'.format( resp[ 'screen_name' ] ) )
 
 	return redirect( next_url )
 
@@ -86,7 +102,6 @@ def logout():
 	session.pop( 'user_id', None )
 	flash( u'You were signed out.' )
 	return redirect( request.referrer or url_for( 'index' ) )
-
 
 if __name__ == '__main__':
 	app.run( debug = True )
