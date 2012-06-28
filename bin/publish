@@ -3,4 +3,7 @@
 hg bookmarks -fr default master
 #hg push 
 hg push git+ssh://localhost:$(pwd)/.git/
-git push heroku master
+git push github master
+if [ -n "$1" ]; then
+	git push heroku master
+fi
