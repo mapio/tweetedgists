@@ -64,8 +64,7 @@ def before_request():
 		
 @twitter.tokengetter
 def get_twitter_token():
-	user = g.user
-	if user is not None:
+	if g.user is not None:
 	    return g.oauth_token, g.oauth_secret
 
 @app.route( '/')
@@ -74,9 +73,11 @@ def index():
 
 @app.route( '/login' )
 def login():
+	next = request.args.get( 'next' ) or request.referrer or url_for( 'index' )
+	if 'user_id' in session: return redirect( next )
 	return twitter.authorize( callback = url_for( 
 		'oauth_authorized', 
-		next = request.args.get( 'next' ) or request.referrer or None 
+		next = next
 	) )
 
 @app.route( '/oauth-authorized' )
