@@ -56,7 +56,7 @@
 	  </div>
 	  <div class="modal-body">
 	  	{% for message in messages %}
-			<p>{{ message }}</p>
+			<p>{{ message|safe }}</p>
 		{% endfor %}
 	  </div>
 	</div>
@@ -64,9 +64,6 @@
 	{% endif %}{% endwith %}	
 	
 	<div class="container">{% block content %}{% endblock %}</div>
-
-		<p class=message>{{ message }}
-
 	
 	<script type="text/javascript">
 

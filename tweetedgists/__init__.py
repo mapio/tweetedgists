@@ -76,7 +76,7 @@ def index():
 def login():
 	return twitter.authorize( callback = url_for( 
 		'oauth_authorized', 
-		next = request.args.get('next') or request.referrer or None 
+		next = request.args.get( 'next' ) or request.referrer or None 
 	) )
 
 @app.route( '/oauth-authorized' )
@@ -93,7 +93,7 @@ def oauth_authorized( resp ):
 	cache.set( session[ 'user_id' ] + '_username', resp[ 'screen_name' ] )
 	cache.set( session[ 'user_id' ] + '_oauth_token', resp[ 'oauth_token' ] )
 	cache.set( session[ 'user_id' ] + '_oauth_secret', 	resp[ 'oauth_token_secret' ] )
-	flash( u'You were signed in as <b>{0}</b>'.format( resp[ 'screen_name' ] ) )
+	flash( u'You were signed in as <b>{0}</b>.'.format( resp[ 'screen_name' ] ) )
 
 	return redirect( next_url )
 
