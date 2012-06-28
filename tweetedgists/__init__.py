@@ -14,10 +14,12 @@
 # You should have received a copy of the GNU General Public License along with
 # TweetedGists If not, see <http://www.gnu.org/licenses/>. 
 
+from json import loads
 from os import environ as ENV
 
 from flask import Flask, g, render_template, request, redirect, url_for, session, flash
 from flaskext.oauth import OAuth
+from requests import get
 from werkzeug.contrib.cache import MemcachedCache
 
 # setup cache
@@ -53,6 +55,8 @@ __version__ = '0.0.1'
 app = Flask(__name__)
 app.secret_key = ENV[ 'SECRET_KEY' ]
 
+# auth handling routes, inspired by https://github.com/mitsuhiko/flask-oauth
+
 @app.before_request
 def before_request():
 	g.version = __version__
@@ -67,14 +71,10 @@ def get_twitter_token():
 	if g.user is not None:
 	    return g.oauth_token, g.oauth_secret
 
-@app.route( '/')
-def index():
-	return render_template( 'index.html' )
-
 @app.route( '/login' )
 def login():
 	next = request.args.get( 'next' ) or request.referrer or url_for( 'index' )
-	if 'user_id' in session: return redirect( next )
+	if 'user_id' in session and cache.get( session[ 'user_id' ] + '_username' ): return redirect( next )
 	return twitter.authorize( callback = url_for( 
 		'oauth_authorized', 
 		next = next
@@ -104,55 +104,39 @@ def logout():
 	flash( u'You were signed out.' )
 	return redirect( request.referrer or url_for( 'index' ) )
 
+# the actual application
+
+@app.route( '/' )
+def index():
+	if g.user: return redirect( url_for( 'list' ) )
+	return render_template( 'index.html' )
+
+def cached_get( key, *args, **kwargs ):
+	result = cache.get( 'get_' + key )
+	if result: return result
+	result = get( *args, **kwargs )
+	if result.status_code == 200:
+		cache.add( 'get_' +  key, result.text )
+		return result.text
+	else:
+		return None
+
+@app.route( '/list' )
+def list():
+	if not g.user: return redirect( url_for( 'index' ) )
+
+	res = []	
+	tweets = cached_get( 'tweets', 'http://search.twitter.com/search.json', params = { 'q': 'gist.github', 'rpp': '10', 'include_entities': 'true', 'show_user': 'true' } )
+	tweets = loads( tweets )	
+	for t in tweets[ 'results' ]:
+	    embed = cached_get( 'embed_{0}'.format( t[ 'id' ] ), 'https://api.twitter.com/1/statuses/oembed.json', params = { 'id': t['id'], 'align': 'center' } )
+	    res.append( loads( embed )[ 'html' ].split( '\n' )[ 0 ] )
+	    for u in t['entities']['urls']:
+	        gg = u['expanded_url']
+	        if 'gist.github.com' in gg:
+	            res.append( '<script src="{0}.js"></script>'.format( gg ) )
+	
+	return render_template( 'list.html', content = '\n'.join( res ) )
+
 if __name__ == '__main__':
 	app.run( debug = True )
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-
-
-
-
-	# @app.route('/')
-	# def index():
-	#     tweets = None
-	#     if g.user is not None:
-	#         resp = twitter.get('statuses/home_timeline.json')
-	#         if resp.status == 200:
-	#             tweets = resp.data
-	#         else:
-	#             flash('Unable to load tweets from Twitter. Maybe out of '
-	#                   'API calls or Twitter is overloaded.')
-	#     return render_template('index.html', tweets=tweets)
-	# 
-	# 
-	# @app.route('/tweet', methods=['POST'])
-	# def tweet():
-	#     """Calls the remote twitter API to create a new status update."""
-	#     if g.user is None:
-	#         return redirect(url_for('login', next=request.url))
-	#     status = request.form['tweet']
-	#     if not status:
-	#         return redirect(url_for('index'))
-	#     resp = twitter.post('statuses/update.json', data={
-	#         'status':       status
-	#     })
-	#     if resp.status == 403:
-	#         flash('Your tweet was too long.')
-	#     elif resp.status == 401:
-	#         flash('Authorization error with Twitter.')
-	#     else:
-	#         flash('Successfully tweeted your tweet (ID: #%s)' % resp.data['id'])
-	#     return redirect(url_for('index'))

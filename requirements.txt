@@ -2,3 +2,4 @@ Flask
 flask-oauth
 gunicorn
 pylibmc
+requests
