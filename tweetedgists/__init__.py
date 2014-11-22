@@ -1,24 +1,24 @@
 # Copyright (C) 2012 Massimo Santini <massimo.santini@unimi.it>
-# 
+#
 # This file is part of TweetedGists
-# 
+#
 # TweetedGists is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
 # Foundation, either version 3 of the License, or (at your option) any later
 # version.
-# 
+#
 # TweetedGists is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along with
-# TweetedGists If not, see <http://www.gnu.org/licenses/>. 
+# TweetedGists If not, see <http://www.gnu.org/licenses/>.
 
 from json import loads
 from os import environ as ENV
 
 from flask import Flask, g, render_template, request, redirect, url_for, session, flash
-from flaskext.oauth import OAuth
+from flask_oauth import OAuth
 from requests import get
 from werkzeug.contrib.cache import MemcachedCache
 
@@ -65,7 +65,7 @@ def before_request():
 		g.user = cache.get( session[ 'user_id' ] + '_username' )
 		g.oauth_token = cache.get( session[ 'user_id' ] + '_oauth_token' )
 		g.oauth_secret = cache.get( session[ 'user_id' ] + '_oauth_secret' )
-		
+
 @twitter.tokengetter
 def get_twitter_token():
 	if g.user is not None:
@@ -75,8 +75,8 @@ def get_twitter_token():
 def login():
 	next = request.args.get( 'next' ) or request.referrer or url_for( 'index' )
 	if 'user_id' in session and cache.get( session[ 'user_id' ] + '_username' ): return redirect( next )
-	return twitter.authorize( callback = url_for( 
-		'oauth_authorized', 
+	return twitter.authorize( callback = url_for(
+		'oauth_authorized',
 		next = next
 	) )
 
@@ -125,9 +125,9 @@ def cached_get( key, *args, **kwargs ):
 def list():
 	if not g.user: return redirect( url_for( 'index' ) )
 
-	res = []	
+	res = []
 	tweets = cached_get( 'tweets', 'http://search.twitter.com/search.json', params = { 'q': 'gist.github', 'rpp': '10', 'include_entities': 'true', 'show_user': 'true' } )
-	tweets = loads( tweets )	
+	tweets = loads( tweets )
 	for t in tweets[ 'results' ]:
 	    embed = cached_get( 'embed_{0}'.format( t[ 'id' ] ), 'https://api.twitter.com/1/statuses/oembed.json', params = { 'id': t['id'], 'align': 'center' } )
 	    res.append( loads( embed )[ 'html' ].split( '\n' )[ 0 ] )
@@ -135,7 +135,7 @@ def list():
 	        gg = u['expanded_url']
 	        if 'gist.github.com' in gg:
 	            res.append( '<script src="{0}.js"></script>'.format( gg ) )
-	
+
 	return render_template( 'list.html', content = '\n'.join( res ) )
 
 if __name__ == '__main__':
