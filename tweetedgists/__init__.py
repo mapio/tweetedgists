@@ -73,11 +73,12 @@ def get_twitter_token():
 
 @app.route( '/login' )
 def login():
-	next = request.args.get( 'next' ) or request.referrer or url_for( 'index' )
+	next_url = request.args.get( 'next' ) or request.referrer or url_for( 'index' )
 	if 'user_id' in session and cache.get( session[ 'user_id' ] + '_username' ): return redirect( next )
+	print url_for( 'oauth_authorized', next = next_url, _external = True )
 	return twitter.authorize( callback = url_for(
 		'oauth_authorized',
-		next = next
+		next = next_url, _external = True
 	) )
 
 @app.route( '/oauth-authorized' )
